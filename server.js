@@ -210,6 +210,26 @@ const server = http.createServer(async (request, response) => {
       return;
     }
 
+    if (request.method === "DELETE" && url.pathname.startsWith("/api/messages/")) {
+      if (!hasReceiverAccess(request)) {
+        sendJson(response, 401, { error: "login required" });
+        return;
+      }
+
+      const id = decodeURIComponent(url.pathname.replace("/api/messages/", ""));
+      const messages = await readMessages();
+      const nextMessages = messages.filter((message) => String(message.id) !== id);
+
+      if (nextMessages.length === messages.length) {
+        sendJson(response, 404, { error: "message not found" });
+        return;
+      }
+
+      await writeMessages(nextMessages);
+      sendJson(response, 200, { ok: true });
+      return;
+    }
+
     if (request.method === "GET" && (url.pathname === "/" || url.pathname === "/index.html")) {
       await sendFile(response, "index.html");
       return;

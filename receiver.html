@@ -101,9 +101,16 @@
       padding: 16px;
     }
 
+    .message-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
     .message strong {
       display: block;
-      margin-bottom: 8px;
       font-size: 14px;
     }
 
@@ -160,6 +167,13 @@
       color: var(--text);
     }
 
+    .delete {
+      min-height: 34px;
+      border-color: #e3b7b7;
+      color: #9b2d2d;
+      padding: 0 12px;
+    }
+
     @media (max-width: 640px) {
       main {
         width: min(100% - 24px, 860px);
@@ -178,9 +192,15 @@
       }
 
       .toolbar button,
+      .delete,
       .actions {
         justify-content: center;
         width: 100%;
+      }
+
+      .message-head {
+        align-items: stretch;
+        flex-direction: column;
       }
 
       .actions {
@@ -231,6 +251,12 @@
       localStorage.setItem(storageKey, JSON.stringify(items));
     }
 
+    function removeLocalMessage(id) {
+      const items = getLocalMessages().filter((item) => String(item.id) !== String(id));
+      saveLocalMessages(items);
+      render(items);
+    }
+
     function addQueryMessageOnce() {
       const params = new URLSearchParams(window.location.search);
       const first = params.get("first")?.trim() || "";
@@ -269,9 +295,20 @@
         const group = document.createElement("article");
         group.className = "message";
 
+        const head = document.createElement("div");
+        head.className = "message-head";
+
         const title = document.createElement("strong");
         title.textContent = "도착한 글자";
-        group.append(title);
+
+        const deleteButton = document.createElement("button");
+        deleteButton.className = "delete";
+        deleteButton.type = "button";
+        deleteButton.textContent = "삭제";
+        deleteButton.dataset.id = item.id;
+
+        head.append(title, deleteButton);
+        group.append(head);
 
         if (item.first) {
           const first = document.createElement("p");
@@ -293,6 +330,28 @@
       }
     }
 
+    async function deleteMessage(id) {
+      if (!confirm("이 도착 글자를 삭제할까요?")) {
+        return;
+      }
+
+      if (window.location.protocol.startsWith("http")) {
+        const response = await fetch(`/api/messages/${encodeURIComponent(id)}`, {
+          method: "DELETE"
+        });
+
+        if (response.status === 401) {
+          window.location.href = "/login";
+          return;
+        }
+
+        await loadMessages();
+        return;
+      }
+
+      removeLocalMessage(id);
+    }
+
     async function loadMessages() {
       if (window.location.protocol.startsWith("http")) {
         const response = await fetch("/api/messages");
@@ -312,6 +371,15 @@
     }
 
     refreshButton.addEventListener("click", loadMessages);
+    messages.addEventListener("click", (event) => {
+      const button = event.target.closest(".delete");
+
+      if (!button) {
+        return;
+      }
+
+      deleteMessage(button.dataset.id);
+    });
     loadMessages();
   </script>
 </body>
