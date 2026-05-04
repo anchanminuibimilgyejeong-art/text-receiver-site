@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>받는 사이트</title>
+  <style>
+    :root {
+      --bg: #eef3f1;
+      --surface: #ffffff;
+      --text: #17201c;
+      --muted: #62706a;
+      --line: #d7dfdb;
+      --primary: #11644f;
+      --accent: #ca6f1e;
+      --shadow: 0 18px 45px rgba(22, 32, 28, 0.1);
+      font-family: "Segoe UI", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    main {
+      width: min(860px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 36px 0;
+    }
+
+    h1,
+    h2,
+    p {
+      margin: 0;
+      letter-spacing: 0;
+    }
+
+    h1 {
+      font-size: 31px;
+      line-height: 1.2;
+    }
+
+    .subtitle {
+      margin-top: 8px;
+      margin-bottom: 22px;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .panel-head {
+      border-bottom: 1px solid var(--line);
+      padding: 18px 20px;
+    }
+
+    .panel-head h2 {
+      font-size: 18px;
+      line-height: 1.3;
+    }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      border-bottom: 1px solid var(--line);
+      padding: 14px 20px;
+    }
+
+    .count {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .messages {
+      display: grid;
+      gap: 14px;
+      padding: 20px;
+    }
+
+    .message {
+      border: 1px solid var(--line);
+      border-left: 5px solid var(--accent);
+      border-radius: 8px;
+      background: #fff;
+      padding: 16px;
+    }
+
+    .message strong {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+
+    .message p {
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      line-height: 1.6;
+    }
+
+    .time {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .empty {
+      border: 1px dashed #adbbb5;
+      border-radius: 8px;
+      background: #f8fbfa;
+      color: var(--muted);
+      padding: 28px;
+      text-align: center;
+      line-height: 1.6;
+    }
+
+    .actions {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      border-top: 1px solid var(--line);
+      padding: 16px 20px;
+    }
+
+    a,
+    button {
+      display: inline-flex;
+      align-items: center;
+      min-height: 42px;
+      border: 0;
+      border-radius: 6px;
+      background: var(--primary);
+      color: #fff;
+      cursor: pointer;
+      font: inherit;
+      font-weight: 800;
+      padding: 0 18px;
+      text-decoration: none;
+    }
+
+    button,
+    .logout {
+      background: #ffffff;
+      border: 1px solid var(--line);
+      color: var(--text);
+    }
+
+    @media (max-width: 640px) {
+      main {
+        width: min(100% - 24px, 860px);
+        padding: 24px 0;
+      }
+
+      a,
+      button {
+        justify-content: center;
+        width: 100%;
+      }
+
+      .toolbar {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .toolbar button,
+      .actions {
+        justify-content: center;
+        width: 100%;
+      }
+
+      .actions {
+        align-items: stretch;
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>받는 사이트</h1>
+    <p class="subtitle">입력 사이트와 다른 URL입니다. 전달된 글자만 이곳에 표시됩니다.</p>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>도착한 글자</h2>
+      </div>
+      <div class="toolbar">
+        <div class="count" id="count">도착한 글자 0개</div>
+        <button type="button" id="refreshButton">새로고침</button>
+      </div>
+      <div class="messages" id="messages"></div>
+      <div class="actions">
+        <a href="index.html">입력 사이트로 돌아가기</a>
+        <form method="post" action="/logout">
+          <button class="logout" type="submit">로그아웃</button>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const messages = document.querySelector("#messages");
+    const count = document.querySelector("#count");
+    const refreshButton = document.querySelector("#refreshButton");
+    const storageKey = "receivedMessages";
+
+    function getLocalMessages() {
+      try {
+        return JSON.parse(localStorage.getItem(storageKey)) || [];
+      } catch {
+        return [];
+      }
+    }
+
+    function saveLocalMessages(items) {
+      localStorage.setItem(storageKey, JSON.stringify(items));
+    }
+
+    function addQueryMessageOnce() {
+      const params = new URLSearchParams(window.location.search);
+      const first = params.get("first")?.trim() || "";
+      const second = params.get("second")?.trim() || "";
+
+      if (!first && !second) {
+        return;
+      }
+
+      const item = {
+        id: params.get("id") || `legacy-${first}-${second}`,
+        first,
+        second,
+        createdAt: params.get("createdAt") || new Date().toISOString()
+      };
+      const items = getLocalMessages();
+
+      if (!items.some((stored) => stored.id === item.id)) {
+        items.unshift(item);
+        saveLocalMessages(items);
+      }
+
+      window.history.replaceState({}, "", "receiver.html");
+    }
+
+    function render(items) {
+      messages.innerHTML = "";
+      count.textContent = `도착한 글자 ${items.length}개`;
+
+      if (!items.length) {
+        messages.innerHTML = '<div class="empty">아직 전달된 글자가 없습니다.<br>입력 사이트에서 글자를 보내주세요.</div>';
+        return;
+      }
+
+      for (const item of items) {
+        const group = document.createElement("article");
+        group.className = "message";
+
+        const title = document.createElement("strong");
+        title.textContent = "도착한 글자";
+        group.append(title);
+
+        if (item.first) {
+          const first = document.createElement("p");
+          first.textContent = `첫 번째: ${item.first}`;
+          group.append(first);
+        }
+
+        if (item.second) {
+          const second = document.createElement("p");
+          second.textContent = `두 번째: ${item.second}`;
+          group.append(second);
+        }
+
+        const time = document.createElement("div");
+        time.className = "time";
+        time.textContent = new Date(item.createdAt).toLocaleString("ko-KR");
+        group.append(time);
+        messages.append(group);
+      }
+    }
+
+    async function loadMessages() {
+      if (window.location.protocol.startsWith("http")) {
+        const response = await fetch("/api/messages");
+
+        if (response.status === 401) {
+          window.location.href = "/login";
+          return;
+        }
+
+        const items = await response.json();
+        render(items);
+        return;
+      }
+
+      addQueryMessageOnce();
+      render(getLocalMessages());
+    }
+
+    refreshButton.addEventListener("click", loadMessages);
+    loadMessages();
+  </script>
+</body>
+</html>

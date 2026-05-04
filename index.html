@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>입력 사이트</title>
+  <style>
+    :root {
+      --bg: #f3f5f7;
+      --surface: #ffffff;
+      --text: #17201c;
+      --muted: #62706a;
+      --line: #d7dfdb;
+      --primary: #11644f;
+      --primary-strong: #0b4939;
+      --danger: #b33a3a;
+      --shadow: 0 18px 45px rgba(22, 32, 28, 0.1);
+      font-family: "Segoe UI", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    button,
+    textarea {
+      font: inherit;
+    }
+
+    main {
+      width: min(920px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 36px 0;
+    }
+
+    header {
+      margin-bottom: 22px;
+    }
+
+    h1,
+    h2,
+    p {
+      margin: 0;
+      letter-spacing: 0;
+    }
+
+    h1 {
+      font-size: 31px;
+      line-height: 1.2;
+    }
+
+    .subtitle {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    form {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .form-head {
+      border-bottom: 1px solid var(--line);
+      padding: 18px 20px;
+    }
+
+    .form-head h2 {
+      font-size: 18px;
+      line-height: 1.3;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      padding: 20px;
+    }
+
+    section {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfcfc;
+      padding: 16px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 10px;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 190px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #fff;
+      color: var(--text);
+      line-height: 1.55;
+      outline: none;
+      padding: 12px;
+      resize: vertical;
+      transition: border-color 140ms ease, box-shadow 140ms ease;
+    }
+
+    textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(17, 100, 79, 0.16);
+    }
+
+    .actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      border-top: 1px solid var(--line);
+      padding: 16px 20px;
+    }
+
+    .status {
+      min-height: 21px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .error {
+      color: var(--danger);
+    }
+
+    button {
+      min-height: 44px;
+      border: 0;
+      border-radius: 6px;
+      background: var(--primary);
+      color: #fff;
+      cursor: pointer;
+      font-weight: 800;
+      padding: 0 22px;
+      white-space: nowrap;
+    }
+
+    button:hover {
+      background: var(--primary-strong);
+    }
+
+    @media (max-width: 760px) {
+      main {
+        width: min(100% - 24px, 920px);
+        padding: 24px 0;
+      }
+
+      .grid,
+      .actions {
+        grid-template-columns: 1fr;
+      }
+
+      .grid {
+        display: grid;
+      }
+
+      .actions {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      button {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>입력 사이트</h1>
+      <p class="subtitle">두 칸에 글자를 입력하고 확인을 누르면 다른 URL의 받는 사이트로 전송됩니다.</p>
+    </header>
+
+    <form id="sendForm">
+      <div class="form-head">
+        <h2>보낼 글자 입력</h2>
+      </div>
+
+      <div class="grid">
+        <section>
+          <label for="textOne">첫 번째 글자</label>
+          <textarea id="textOne" placeholder="첫 번째로 보낼 글자를 입력하세요."></textarea>
+        </section>
+
+        <section>
+          <label for="textTwo">두 번째 글자</label>
+          <textarea id="textTwo" placeholder="두 번째로 보낼 글자를 입력하세요."></textarea>
+        </section>
+      </div>
+
+      <div class="actions">
+        <div class="status" id="status" aria-live="polite"></div>
+        <button type="submit">확인</button>
+      </div>
+    </form>
+  </main>
+
+  <script>
+    const form = document.querySelector("#sendForm");
+    const textOne = document.querySelector("#textOne");
+    const textTwo = document.querySelector("#textTwo");
+    const status = document.querySelector("#status");
+
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+
+      const first = textOne.value.trim();
+      const second = textTwo.value.trim();
+
+      if (!first && !second) {
+        status.textContent = "보낼 글자를 한 칸 이상 입력하세요.";
+        status.classList.add("error");
+        return;
+      }
+
+      const message = {
+        id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+        first,
+        second,
+        createdAt: new Date().toISOString()
+      };
+
+      if (window.location.protocol.startsWith("http")) {
+        fetch("/api/messages", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(message)
+        })
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error("send failed");
+            }
+            window.location.href = "receiver.html";
+          })
+          .catch(() => {
+            status.textContent = "전송에 실패했습니다. 서버가 켜져 있는지 확인하세요.";
+            status.classList.add("error");
+          });
+        return;
+      }
+
+      const receiverUrl = new URL("receiver.html", window.location.href);
+      receiverUrl.searchParams.set("id", message.id);
+      receiverUrl.searchParams.set("first", first);
+      receiverUrl.searchParams.set("second", second);
+      receiverUrl.searchParams.set("createdAt", message.createdAt);
+      window.location.href = receiverUrl.toString();
+    });
+  </script>
+</body>
+</html>
