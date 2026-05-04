@@ -220,6 +220,25 @@
     const textOne = document.querySelector("#textOne");
     const textTwo = document.querySelector("#textTwo");
     const status = document.querySelector("#status");
+    const storageKey = "receivedMessages";
+
+    function saveLocalMessage(message) {
+      try {
+        const messages = JSON.parse(localStorage.getItem(storageKey)) || [];
+        messages.unshift(message);
+        localStorage.setItem(storageKey, JSON.stringify(messages));
+      } catch {
+        localStorage.setItem(storageKey, JSON.stringify([message]));
+      }
+    }
+
+    function markSent() {
+      status.textContent = "전송했습니다. 받는 사이트에서 확인할 수 있습니다.";
+      status.classList.remove("error");
+      textOne.value = "";
+      textTwo.value = "";
+      textOne.focus();
+    }
 
     form.addEventListener("submit", (event) => {
       event.preventDefault();
@@ -252,7 +271,7 @@
             if (!response.ok) {
               throw new Error("send failed");
             }
-            window.location.href = "receiver.html";
+            markSent();
           })
           .catch(() => {
             status.textContent = "전송에 실패했습니다. 서버가 켜져 있는지 확인하세요.";
@@ -261,12 +280,8 @@
         return;
       }
 
-      const receiverUrl = new URL("receiver.html", window.location.href);
-      receiverUrl.searchParams.set("id", message.id);
-      receiverUrl.searchParams.set("first", first);
-      receiverUrl.searchParams.set("second", second);
-      receiverUrl.searchParams.set("createdAt", message.createdAt);
-      window.location.href = receiverUrl.toString();
+      saveLocalMessage(message);
+      markSent();
     });
   </script>
 </body>
