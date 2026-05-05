@@ -68,6 +68,16 @@ async function sendFile(response, fileName) {
   response.end(content);
 }
 
+async function sendAsset(response, fileName, contentType) {
+  const filePath = path.join(root, fileName);
+  const content = await fs.readFile(filePath);
+  response.writeHead(200, {
+    "Content-Type": contentType,
+    "Cache-Control": "no-store"
+  });
+  response.end(content);
+}
+
 function sendLogin(response, failed = false) {
   response.writeHead(200, {
     "Content-Type": "text/html; charset=utf-8",
@@ -232,6 +242,16 @@ const server = http.createServer(async (request, response) => {
 
     if (request.method === "GET" && (url.pathname === "/" || url.pathname === "/index.html")) {
       await sendFile(response, "index.html");
+      return;
+    }
+
+    if (request.method === "GET" && url.pathname === "/sender.css") {
+      await sendAsset(response, "sender.css", "text/css; charset=utf-8");
+      return;
+    }
+
+    if (request.method === "GET" && url.pathname === "/sender.js") {
+      await sendAsset(response, "sender.js", "text/javascript; charset=utf-8");
       return;
     }
 
